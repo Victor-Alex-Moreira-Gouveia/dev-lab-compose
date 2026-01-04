@@ -66,8 +66,8 @@ Antes de começar, é necessário ter **um dos conjuntos abaixo** instalado:
 ### 1️⃣ Clonar o repositório
 
 ```bash
-git clone <url-do-repositorio>
-cd <nome-do-repositorio>
+git clone https://github.com/Victor-Alex-Moreira-Gouveia/dev-lab-compose
+cd dev-lab-compose
 ```
 
 ---
@@ -123,8 +123,16 @@ podman-compose down
 
 #### ⚠️ Remover volumes (apaga dados persistidos):
 
+**Usando Docker:**
+
 ```bash
 docker compose down -v
+```
+
+**Usando Podman:**
+
+```bash
+podman-compose down -v
 ```
 
 ---
@@ -147,6 +155,11 @@ http://localhost:5678
 http://localhost:8080
 ```
 
+Acesso a painel de controle da API
+```text
+http://localhost:8080/manager
+```
+
 > A porta pode variar conforme configuração no `.env`.
 
 ---
@@ -154,7 +167,7 @@ http://localhost:8080
 ### 🐘 Adminer
 
 ```text
-http://localhost:8081
+http://localhost:5000
 ```
 
 ---
