@@ -198,3 +198,21 @@ Sugestões, melhorias e ajustes são bem-vindos.
 ---
 
 🚀 **Pronto! O ambiente está preparado para ser usado, estudado e evoluído.**
+
+---
+
+## ⚠️ Nota sobre Redis no Evolution API
+
+Durante testes práticos com as versões 2.2.x do Evolution API, foi observado
+um comportamento recorrente de desconexão do Redis, mesmo com:
+
+- conectividade de rede funcional
+- autenticação correta
+- porta acessível
+
+Esse comportamento não impede o funcionamento da API nem do módulo
+de WhatsApp (envio e recebimento de mensagens).
+
+Por esse motivo, o Redis foi desabilitado no Evolution API neste laboratório,
+priorizando estabilidade e simplicidade.
+

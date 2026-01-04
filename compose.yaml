@@ -112,8 +112,10 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_ENABLED=true
       - DATABASE_CONNECTION_URI=${DATABASE_CONNECTION_URI}
-      - REDIS_ENABLED=true
-      - REDIS_URI=redis://redis:6379
+
+
+      - REDIS_ENABLED=false 
+      
       - AUTHENTICATION_TYPE=apikey
       - AUTHENTICATION_API_KEY=${EVO_API_KEY}
     volumes:
