@@ -1,0 +1,139 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:latest
+    container_name: n8n_db
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql:Z
+    networks:
+      - n8n_network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.75"
+        reservations:
+          memory: 512M
+
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 5000:8080
+    networks:
+      - n8n_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+
+  redis:
+    image: redis:latest
+    container_name: n8n_redis
+    restart: always
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - ./Redis:/data:Z
+    command: redis-server --save 60 1 --loglevel warning
+    networks:
+      - n8n_network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+        reservations:
+          memory: 128M
+
+  # Container auxiliar de execução do N8N
+  n8n-init:
+    image: busybox
+    command: sh -c "chown -R 1000:1000 /data"
+    volumes:
+      - ./n8n_data:/data:Z
+    depends_on:
+      - n8n
+
+  # Aplicação N8N
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n_app
+    user: 1000:1000
+    restart: always
+    ports:
+      - ${N8N_PORT}:5678
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${DB_NAME}
+      - DB_POSTGRESDB_USER=${DB_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
+      - EXECUTIONS_MODE=regular
+      - QUEUE_BULL_REDIS_HOST=redis
+      - QUEUE_BULL_REDIS_PORT=6379
+      - N8N_HOST=localhost
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL}
+      - GENERIC_TIMEZONE=${TIMEZONE}
+    volumes:
+      - ./n8n_data:/home/node/.n8n:Z
+    networks:
+      - n8n_network
+    depends_on:
+      - db
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution_api
+    restart: always
+    ports:
+      - ${EVO_PORT}:8080
+    environment:
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_ENABLED=true
+      - DATABASE_CONNECTION_URI=${DATABASE_CONNECTION_URI}
+      - REDIS_ENABLED=true
+      - REDIS_URI=redis://redis:6379
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=${EVO_API_KEY}
+    volumes:
+      - ./evolution_store:/evolution/store:Z
+      - ./evolution_instances:/evolution/instances:Z
+    networks:
+      - n8n_network
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+
+networks:
+  n8n_network:
+    driver: bridge
